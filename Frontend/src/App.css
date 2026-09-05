@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+/* --- Flip Card Utilities --- */
+/* --- Flip Card Utilities --- */
+.perspective {
+  perspective: 1200px;
+}
+
+.transform-style-preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-x-180 {
+  transform: rotateX(180deg);
+}
+
