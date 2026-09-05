@@ -1,147 +1,113 @@
 import React from "react";
-import logo from '../assets/Images/logo.png'
+import Layout from "./Layout";
+import { useTheme } from "../context/ThemeContext";
 
-// Base64 logo placeholder
-
-// Header component
-function Header() {
-  return (
-    <header
-      className="sticky top-0 z-50 bg-gradient-to-r from-green-900 via-green-800 to-emerald-700 
-                 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.3)] border-b border-green-600"
-    >
-      <div className="max-w-7xl mx-auto flex items-center justify-between py-4 px-6 md:px-10">
-        
-        {/* --- Logo & Brand Name --- */}
-        <div className="flex items-center gap-3">
-          <img
-            src={logo}
-            alt="FW3 Logo"
-            className="h-[70px] w-[70px] rounded-full border-2 border-yellow-400 
-                       hover:shadow-[0_0_20px_rgba(255,255,100,0.6)] transition-transform 
-                       duration-500 hover:scale-110 cursor-pointer"
-          />
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight font-inter text-white">
-            <span className="text-yellow-300 drop-shadow-[0_0_6px_rgba(255,255,100,0.7)]">
-              Farmer World
-            </span>{" "}
-            <span className="text-green-200">Wellbeing Web</span>{" "}
-            <span className="text-yellow-400">FW3</span>
-          </h1>
-        </div>
-
-        {/* --- Navigation Menu --- */}
-        <nav className="hidden md:flex items-center gap-10 text-lg font-semibold text-green-50">
-          {["Home", "About", "Contact"].map((item) => (
-            <a
-              key={item}
-              href={`/${item.toLowerCase()}`}
-              className="relative group transition-all duration-300 hover:text-yellow-300"
-            >
-              {item}
-              {/* Underline animation */}
-              <span
-                className="absolute left-0 -bottom-1 w-0 h-[2px] bg-yellow-400 rounded-full 
-                           transition-all duration-300 group-hover:w-full"
-              ></span>
-            </a>
-          ))}
-        </nav>
-
-        {/* --- Mobile Menu Icon (optional for small screens) --- */}
-        <div className="md:hidden text-yellow-400 cursor-pointer hover:scale-110 transition-transform duration-300">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-8 w-8"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </div>
-      </div>
-    </header>
-  );
-}
-
-// Footer component
-const Footer = () => {
-  return (
-    <footer className="mt-16 bg-green-800 p-6 text-center text-white shadow-inner font-inter relative z-30">
-      <p className="text-sm font-medium">
-        &copy; {new Date().getFullYear()} Farmer World Wellbeing Web (FW3). All
-        rights reserved.
-      </p>
-    </footer>
-  );
-};
-
-// Contact data
 const CONTACTS = [
   {
+    emoji: "🌾",
     name: "Ministry of Agriculture & Farmers Welfare",
     website: "https://agricoop.nic.in/",
+    desc: "Central government portal for agricultural policies and farmer welfare schemes.",
   },
   {
-    name: "National Bank for Agriculture and Rural Development (NABARD)",
+    emoji: "🏦",
+    name: "NABARD",
     website: "https://www.nabard.org/",
+    desc: "National Bank for Agriculture and Rural Development — financing rural India.",
   },
   {
+    emoji: "📋",
     name: "State Agriculture Department",
-    website: "https://www.mahaagri.gov.in/", // example Maharashtra
+    website: "https://www.mahaagri.gov.in/",
+    desc: "Maharashtra state agriculture department for local scheme registration.",
   },
   {
+    emoji: "🔬",
     name: "Krishi Vigyan Kendra (KVK)",
     website: "https://www.kvk.icar.gov.in/",
+    desc: "Farm science centres offering training, seed distribution, and soil testing.",
   },
   {
+    emoji: "💰",
     name: "PM-Kisan Scheme Portal",
     website: "https://www.pmkisan.gov.in/",
+    desc: "Check eligibility and receive ₹6,000/year direct income support.",
   },
 ];
 
-// Contact page
 const Contact = () => {
+  const { isDark } = useTheme();
+
   return (
-    <div className="flex flex-col min-h-screen font-inter bg-green-100">
-      <Header />
+    <Layout>
+      <div className={`flex flex-col min-h-screen transition-colors duration-300 ${
+        isDark ? "bg-gradient-to-b from-slate-900 via-slate-800 to-gray-900" : "bg-logo-blur"
+      }`}>
 
-      {/* Hero Section */}
-      <section className="bg-green-100/90 py-16 text-center shadow-md">
-        <h2 className="text-5xl font-extrabold text-green-900 mb-6">
-          Important Government Contacts for Farmers
-        </h2>
-        <p className="mx-auto max-w-3xl text-lg text-gray-700 px-4">
-          These official websites provide information, assistance, and schemes to help farmers manage their farms, access financial support, and get expert guidance.
-        </p>
-      </section>
+        {/* ── Hero ── */}
+        <section className={`relative overflow-hidden py-14 md:py-18 text-center transition-colors duration-300 ${
+          isDark ? "bg-slate-800/60" : ""
+        }`}>
+          {!isDark && (
+            <div className="pointer-events-none absolute top-0 left-0 w-64 h-64 rounded-full bg-green-300/20 blur-3xl" />
+          )}
+          <div className="relative max-w-2xl mx-auto px-6">
+            <span className={`inline-block text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-5 ${
+              isDark ? "bg-blue-900/40 text-blue-300 border border-blue-700/50" : "bg-green-100 text-green-700 border border-green-300"
+            }`}>
+              Government Resources
+            </span>
+            <h1 className={`text-4xl md:text-5xl font-extrabold tracking-tight mb-4 ${
+              isDark ? "text-blue-300" : "text-gray-900"
+            }`}>
+              Important Contacts
+            </h1>
+            <p className={`text-base md:text-lg ${isDark ? "text-slate-300" : "text-gray-600"}`}>
+              Official government portals for financial support, crop guidance, and scheme registration.
+            </p>
+          </div>
+        </section>
 
-      {/* Contact Cards */}
-      <main className="container mx-auto flex-1 px-5 py-10">
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {CONTACTS.map((contact, index) => (
-            <div
-              key={index}
-              className="bg-green-700/90 text-white p-6 rounded-xl shadow-lg hover:shadow-2xl transition-transform duration-300 transform hover:scale-105"
-            >
-              <h3 className="text-xl font-bold mb-2">{contact.name}</h3>
+        {/* ── Cards ── */}
+        <main className="max-w-5xl mx-auto w-full px-5 py-12 flex-1">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {CONTACTS.map((contact, index) => (
               <a
+                key={index}
                 href={contact.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-yellow-300 hover:text-yellow-500 underline break-words"
+                className={`group flex flex-col gap-3 p-6 rounded-2xl border-2 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 no-underline ${
+                  isDark
+                    ? "bg-slate-700 border-slate-600 hover:border-blue-500 text-slate-100"
+                    : "bg-white border-green-100 hover:border-green-400 text-gray-900"
+                }`}
               >
-                {contact.website}
+                <div className={`text-3xl w-12 h-12 flex items-center justify-center rounded-xl ${
+                  isDark ? "bg-slate-600" : "bg-green-50"
+                }`}>
+                  {contact.emoji}
+                </div>
+                <div>
+                  <h3 className={`font-bold text-base mb-1 group-hover:${isDark ? "text-blue-300" : "text-green-700"} transition-colors duration-200`}>
+                    {contact.name}
+                  </h3>
+                  <p className={`text-sm leading-relaxed ${isDark ? "text-slate-400" : "text-gray-500"}`}>
+                    {contact.desc}
+                  </p>
+                </div>
+                <div className={`mt-auto text-xs font-semibold truncate ${
+                  isDark ? "text-blue-400" : "text-green-600"
+                }`}>
+                  {contact.website}
+                </div>
               </a>
-            </div>
-          ))}
-        </div>
-      </main>
+            ))}
+          </div>
+        </main>
 
-      <Footer />
-    </div>
+      </div>
+    </Layout>
   );
 };
 

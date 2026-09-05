@@ -1,237 +1,264 @@
-// src/Components/TechSupport.jsx (CORRECTED)
-
 import React, { useState } from 'react';
-import logo from '../assets/Images/logo.png'
-import { LightBulbIcon, AcademicCapIcon, ChatBubbleBottomCenterTextIcon, UserGroupIcon, PaperAirplaneIcon } from '@heroicons/react/24/solid';
-import { Link } from 'react-router-dom';
+import {
+  LightBulbIcon,
+  AcademicCapIcon,
+  ChatBubbleBottomCenterTextIcon,
+  UserGroupIcon,
+  PaperAirplaneIcon,
+  CheckCircleIcon,
+} from '@heroicons/react/24/solid';
+import { useTheme } from '../context/ThemeContext';
+import Layout from '../Pages/Layout';
 
-// --- CONFIGURATION ---
-// Accessing the environment variable set in the .env file
 const API_BASE_URL = import.meta.env.VITE_BACKEND_URI;
 
+const FEEDBACK_TYPES = [
+  { value: 'Adoption Feedback',              icon: '📈', desc: 'How farmers are using the platform' },
+  { value: 'Technical Bug Report',           icon: '🐛', desc: 'Something is broken or not working' },
+  { value: 'Content Clarification Request',  icon: '❓', desc: 'Content that is confusing or unclear' },
+  { value: 'Feature Request from Villagers', icon: '💡', desc: 'New features farmers have asked for' },
+];
 
-// --- TechSupport Component ---
+const TEAM_STATS = [
+  { label: 'Active Volunteers', val: '12', icon: '👥' },
+  { label: 'Farmers Onboarded', val: '184', icon: '👨‍🌾' },
+  { label: 'Reports Filed',     val: '37',  icon: '📋' },
+  { label: 'Villages Covered',  val: '4',   icon: '🏘️' },
+];
+
 const TechSupport = () => {
-    // State for the feedback form (to be submitted by the Village Tech Team)
-    const [feedbackType, setFeedbackType] = useState("Adoption Feedback");
-    const [feedbackDetails, setFeedbackDetails] = useState("");
-    const [villageTeamMember, setVillageTeamMember] = useState("");
-    const [submitStatus, setSubmitStatus] = useState(null); // null, 'loading', 'success', 'error'
-    const [errorMessage, setErrorMessage] = useState("");
+  const { isDark } = useTheme();
+  const [feedbackType, setFeedbackType]       = useState(FEEDBACK_TYPES[0].value);
+  const [feedbackDetails, setFeedbackDetails] = useState('');
+  const [villageTeamMember, setVillageTeamMember] = useState('');
+  const [submitStatus, setSubmitStatus]       = useState(null); // null | 'loading' | 'success' | 'error'
+  const [errorMessage, setErrorMessage]       = useState('');
 
-    // Function to clear status messages when a user starts modifying the form
-    const clearStatus = () => {
-        if (submitStatus === 'success' || submitStatus === 'error') {
-            setSubmitStatus(null);
-            setErrorMessage("");
-        }
-    };
+  const clearStatus = () => {
+    if (submitStatus === 'success' || submitStatus === 'error') {
+      setSubmitStatus(null); setErrorMessage('');
+    }
+  };
 
-    // API call for feedback submission
-    const handleSubmitFeedback = async (e) => {
-        e.preventDefault();
-        clearStatus(); // Clear any previous status before starting
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    clearStatus();
+    if (!villageTeamMember.trim() || !feedbackDetails.trim()) {
+      setSubmitStatus('error');
+      setErrorMessage('Please fill in your Name/ID and the Details field.');
+      return;
+    }
+    setSubmitStatus('loading');
+    try {
+      const res = await fetch(`${API_BASE_URL}/submit-tech-feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedbackType, feedbackDetails, villageTeamMember, villageName: 'Shendurjane' }),
+      });
+      if (!res.ok) {
+        let msg = `Server Error (${res.status}).`;
+        try { const d = await res.json(); msg = d.message || msg; } catch {}
+        throw new Error(msg);
+      }
+      setSubmitStatus('success');
+      setFeedbackDetails('');
+      setVillageTeamMember('');
+    } catch (err) {
+      setSubmitStatus('error');
+      setErrorMessage(err.message);
+    }
+  };
 
-        setSubmitStatus('loading');
-        
-        // Basic form validation
-        if (!villageTeamMember.trim() || !feedbackDetails.trim()) {
-            setSubmitStatus('error');
-            setErrorMessage("Please ensure your Name/ID and the Details section are filled out.");
-            return;
-        }
+  /* ── shared styles ── */
+  const page = isDark ? 'bg-gradient-to-b from-slate-900 via-slate-800 to-gray-900' : 'bg-logo-blur';
+  const card = isDark ? 'bg-slate-800 border border-slate-700' : 'bg-white border border-gray-100 shadow-sm';
+  const input = `w-full px-4 py-2.5 rounded-xl border text-sm transition duration-200 focus:outline-none focus:ring-2
+    ${isDark ? 'bg-slate-700 border-slate-600 text-slate-100 placeholder-slate-400 focus:ring-violet-500 focus:border-violet-500'
+              : 'bg-white border-gray-200 text-gray-800 placeholder-gray-400 focus:ring-green-500 focus:border-green-400 shadow-sm'}`;
+  const labelCls = `block text-xs font-semibold uppercase tracking-wide mb-1.5 ${isDark ? 'text-slate-400' : 'text-gray-500'}`;
 
-        const feedbackData = { 
-            feedbackType, 
-            feedbackDetails, 
-            villageTeamMember,
-            villageName: "Shendurjane" // Mock/Context value for the village the team is serving
-        };
+  return (
+    <Layout>
+      <div className={`min-h-screen transition-colors duration-300 ${page}`}>
 
-        try {
-            const response = await fetch(`${API_BASE_URL}/submit-tech-feedback`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(feedbackData),
-            });
-
-            if (!response.ok) {
-                // --- CORRECTED ERROR HANDLING: Prevents 'Unexpected token <' by checking for JSON ---
-                let errorDetail = `Server Error (${response.status} ${response.statusText}).`;
-
-                try {
-                    // Try to parse the response body as JSON (for clean server-side errors)
-                    const errorData = await response.json();
-                    errorDetail = errorData.message || errorDetail;
-                } catch (e) {
-                    // If parsing fails (e.g., receiving HTML 404 page), set a generic message
-                    errorDetail = `Request failed: Backend URL might be incorrect (got a non-JSON response from ${response.url}).`;
-                }
-                
-                throw new Error(errorDetail); 
-                // ---------------------------------------------------------------------------------
-            }
-            
-            // Success response
-            setSubmitStatus('success');
-            setFeedbackDetails("");
-            setVillageTeamMember(""); 
-
-        } catch (error) {
-            console.error("Feedback submission failed:", error);
-            setSubmitStatus('error');
-            setErrorMessage(`Submission failed: ${error.message}`);
-        }
-    };
-
-    // --- Component Structure (rest remains the same) ---
-    return (
-        <div className="min-h-screen bg-green-50 p-8">
-            
-            <div className="max-w-4xl mx-auto">
-                
-                {/* Header Section (Page Title) */}
-                <header className="mb-10 text-center border-b-2 pb-4 border-green-200">
-                    <div className="flex items-center justify-center text-green-700 mb-2">
-                        <LightBulbIcon className="h-8 w-8 mr-2" />
-                        <h1 className="text-4xl font-extrabold tracking-tight">
-                            Village Tech Adoption Team
-                        </h1>
-                    </div>
-                    <p className="text-xl text-gray-600">
-                        Bridging the gap between the FW3 platform and the community.
-                    </p>
-                </header>
-
-                {/* Grid for Information and Form */}
-                <div className="grid md:grid-cols-2 gap-8">
-                    
-                    {/* 1. Tech Team Mission and Role */}
-                    <div className="bg-white p-6 rounded-xl shadow-xl border-l-4 border-green-600 h-full">
-                        <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                            <UserGroupIcon className="h-6 w-6 inline mr-2 text-green-600" />
-                            Mission & Mandate
-                        </h2>
-                        
-                        <p className="mt-4 text-gray-600">
-                            This temporary team, composed of **selected village youth**, is vital for the successful launch of the FW3 platform. Their role is twofold:
-                        </p>
-                        
-                        <ul className="mt-4 space-y-3 text-sm text-gray-700">
-                            <li className="flex items-start">
-                                <AcademicCapIcon className="h-5 w-5 mr-2 mt-1 text-green-500 flex-shrink-0" />
-                                <div>
-                                    <span className="font-semibold text-gray-900">Education & Onboarding:</span> Teaching farmers and villagers the initial use of the website and its core services.
-                                </div>
-                            </li>
-                            <li className="flex items-start">
-                                <ChatBubbleBottomCenterTextIcon className="h-5 w-5 mr-2 mt-1 text-green-500 flex-shrink-0" />
-                                <div>
-                                    <span className="font-semibold text-gray-900">Feedback Channel:</span> Providing real-world adoption feedback and bug reports to the main FW3 Tech Team (in urban/semi-rural areas).
-                                </div>
-                            </li>
-                        </ul>
-                        
-                        <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-300">
-                            <h3 className="font-semibold text-yellow-800">Termination Clause:</h3>
-                            <p className="text-sm text-yellow-700">
-                                This team is temporary and will be **terminated** once the community is proficient with the platform, ensuring the team is cost-effective and task-oriented.
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* 2. Feedback and Issue Submission Form */}
-                    <div className="bg-white p-6 rounded-xl shadow-2xl border-t-8 border-green-700">
-                        <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                            Submit Feedback (For Village Team Only)
-                        </h2>
-
-                        {/* Status Messages */}
-                        {submitStatus === 'success' && (
-                            <div className="p-4 mb-4 text-sm text-green-800 rounded-lg bg-green-100 border border-green-300">
-                                Feedback submitted successfully! The main Tech Team has been notified by **email** and will review it shortly.
-                            </div>
-                        )}
-                        {submitStatus === 'error' && (
-                            <div className="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-100 border border-red-300">
-                                <strong>Submission failed:</strong> {errorMessage || "Check your network connection or try again."}
-                            </div>
-                        )}
-                        
-                        <form onSubmit={handleSubmitFeedback} className="space-y-4">
-                            
-                            {/* Member Name */}
-                            <div>
-                                <label htmlFor="member" className="block text-sm font-medium text-gray-700 mb-1">Your Name / ID</label>
-                                <input
-                                    id="member"
-                                    type="text"
-                                    value={villageTeamMember}
-                                    onChange={(e) => { setVillageTeamMember(e.target.value); clearStatus(); }}
-                                    placeholder="e.g., Sunil Varma (Volunteer ID 45)"
-                                    required
-                                    className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-green-700 focus:border-green-700 transition duration-200 shadow-sm"
-                                />
-                            </div>
-
-                            {/* Feedback Type Selector */}
-                            <div>
-                                <label htmlFor="feedbackType" className="block text-sm font-medium text-gray-700 mb-1">Type of Report</label>
-                                <select
-                                    id="feedbackType"
-                                    value={feedbackType}
-                                    onChange={(e) => { setFeedbackType(e.target.value); clearStatus(); }}
-                                    className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-green-700 focus:border-green-700 transition duration-200 shadow-sm bg-white appearance-none"
-                                >
-                                    <option>Adoption Feedback</option>
-                                    <option>Technical Bug Report</option>
-                                    <option>Content Clarification Request</option>
-                                    <option>Feature Request from Villagers</option>
-                                </select>
-                            </div>
-
-                            {/* Details Text Area */}
-                            <div>
-                                <label htmlFor="details" className="block text-sm font-medium text-gray-700 mb-1">Details & Observations</label>
-                                <textarea
-                                    id="details"
-                                    rows="4"
-                                    value={feedbackDetails}
-                                    onChange={(e) => { setFeedbackDetails(e.target.value); clearStatus(); }}
-                                    placeholder="Describe the issue, common struggle, or suggestion observed..."
-                                    required
-                                    className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-green-700 focus:border-green-700 transition duration-200 shadow-sm"
-                                ></textarea>
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled={submitStatus === 'loading'}
-                                className="w-full bg-green-700 text-white font-semibold py-3 rounded-lg shadow-lg hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-opacity-50 transition duration-200 disabled:bg-gray-400 disabled:shadow-none flex items-center justify-center"
-                            >
-                                {submitStatus === 'loading' ? (
-                                    <>
-                                        <svg className="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24">
-                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                        </svg>
-                                        SENDING REPORT...
-                                    </>
-                                ) : (
-                                    <>
-                                        Submit Feedback to FW3 Tech Team <PaperAirplaneIcon className="h-5 w-5 ml-2 transform rotate-45" />
-                                    </>
-                                )}
-                            </button>
-                        </form>
-                    </div>
-
-                </div>
-                
-            </div>
+        {/* ── Hero ── */}
+        <div className={`border-b ${isDark ? 'border-slate-800' : 'border-green-200/60'}`}>
+          <div className="max-w-6xl mx-auto px-6 py-10">
+            <span className={`text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full inline-block mb-3 ${isDark ? 'bg-violet-900/40 text-violet-400 border border-violet-700/50' : 'bg-violet-100 text-violet-700 border border-violet-300'}`}>
+              Tech Support
+            </span>
+            <h1 className={`text-3xl md:text-4xl font-extrabold mb-2 ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>
+              💻 Village Tech Adoption Team
+            </h1>
+            <p className={`text-base max-w-xl ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>
+              Bridging the digital gap — village youth train farmers and relay real-world feedback to the FW3 central team.
+            </p>
+          </div>
         </div>
-    );
+
+        {/* ── Stats strip ── */}
+        <div className={`border-b ${isDark ? 'border-slate-800' : 'border-green-200/60'}`}>
+          <div className="max-w-6xl mx-auto px-6 py-5 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            {TEAM_STATS.map(({ label, val, icon }) => (
+              <div key={label} className={`rounded-xl p-3 ${isDark ? 'bg-slate-700/50' : 'bg-gray-50'}`}>
+                <p className="text-xl mb-0.5">{icon}</p>
+                <p className={`font-extrabold text-xl ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>{val}</p>
+                <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="max-w-6xl mx-auto px-6 py-10">
+          <div className="grid lg:grid-cols-2 gap-8">
+
+            {/* ── Left: Mission + Team ── */}
+            <div className="space-y-6">
+
+              {/* Mission card */}
+              <div className={`rounded-2xl overflow-hidden ${card}`}>
+                <div className={`px-6 py-4 border-b flex items-center gap-2 ${isDark ? 'border-slate-700 bg-slate-700/50' : 'border-gray-100 bg-gray-50'}`}>
+                  <UserGroupIcon className={`h-5 w-5 ${isDark ? 'text-violet-400' : 'text-violet-600'}`} />
+                  <h2 className={`font-extrabold text-lg ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>Mission & Mandate</h2>
+                </div>
+                <div className="p-6 space-y-4">
+                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>
+                    This temporary team, composed of selected village youth, has two core responsibilities:
+                  </p>
+                  <div className="space-y-4">
+                    {[
+                      {
+                        Icon: AcademicCapIcon,
+                        title: 'Education & Onboarding',
+                        desc: 'Teach farmers and villagers how to use every feature of the FW3 platform.',
+                        color: isDark ? 'text-violet-400' : 'text-violet-600',
+                        bg: isDark ? 'bg-violet-900/30' : 'bg-violet-50',
+                      },
+                      {
+                        Icon: ChatBubbleBottomCenterTextIcon,
+                        title: 'Feedback Channel',
+                        desc: 'Report adoption challenges, bugs, and feature ideas back to the central tech team.',
+                        color: isDark ? 'text-blue-400' : 'text-blue-600',
+                        bg: isDark ? 'bg-blue-900/30' : 'bg-blue-50',
+                      },
+                    ].map(({ Icon, title, desc, color, bg }) => (
+                      <div key={title} className={`rounded-xl p-4 flex items-start gap-3 ${bg}`}>
+                        <Icon className={`h-5 w-5 mt-0.5 flex-shrink-0 ${color}`} />
+                        <div>
+                          <p className={`font-bold text-sm ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>{title}</p>
+                          <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-400' : 'text-gray-600'}`}>{desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Termination notice */}
+                  <div className={`rounded-xl p-4 border ${isDark ? 'bg-amber-900/20 border-amber-700/50' : 'bg-amber-50 border-amber-200'}`}>
+                    <p className={`text-xs font-bold uppercase tracking-wide mb-1 ${isDark ? 'text-amber-400' : 'text-amber-700'}`}>⚠️ Termination Clause</p>
+                    <p className={`text-xs ${isDark ? 'text-amber-300/80' : 'text-amber-800'}`}>
+                      This team is <strong>temporary</strong>. Once the community is proficient with FW3, the team will be dissolved — keeping the programme cost-effective and goal-focused.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* How it works */}
+              <div className={`rounded-2xl p-6 ${card}`}>
+                <p className={`text-xs font-bold uppercase tracking-wider mb-4 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>How It Works</p>
+                <ol className="space-y-4">
+                  {[
+                    ['🧑‍🤝‍🧑', 'Youth volunteers selected from the village'],
+                    ['📱', 'Hands-on training sessions with farmers'],
+                    ['📝', 'Feedback collected and categorised'],
+                    ['🔄', 'Reports sent to central FW3 tech team'],
+                    ['✅', 'Improvements rolled out to the platform'],
+                  ].map(([icon, text], i) => (
+                    <li key={i} className="flex items-center gap-3">
+                      <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-gray-100 text-gray-600'}`}>{i + 1}</span>
+                      <span className={`text-sm ${isDark ? 'text-slate-300' : 'text-gray-600'}`}><span className="mr-1.5">{icon}</span>{text}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+
+            {/* ── Right: Feedback form ── */}
+            <div className={`rounded-2xl overflow-hidden ${card}`}>
+              <div className={`px-6 py-4 border-b ${isDark ? 'border-slate-700 bg-slate-700/50' : 'border-gray-100 bg-gray-50'}`}>
+                <div className="flex items-center gap-2">
+                  <LightBulbIcon className={`h-5 w-5 ${isDark ? 'text-violet-400' : 'text-violet-600'}`} />
+                  <h2 className={`font-extrabold text-lg ${isDark ? 'text-slate-100' : 'text-gray-900'}`}>Submit a Report</h2>
+                </div>
+                <p className={`text-xs mt-1 ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>For village tech team members only</p>
+              </div>
+
+              <div className="p-6">
+                {/* Status messages */}
+                {submitStatus === 'success' && (
+                  <div className={`mb-5 rounded-xl p-4 flex items-start gap-3 ${isDark ? 'bg-green-900/20 border border-green-700' : 'bg-green-50 border border-green-300'}`}>
+                    <CheckCircleIcon className={`h-5 w-5 flex-shrink-0 mt-0.5 ${isDark ? 'text-green-400' : 'text-green-600'}`} />
+                    <div>
+                      <p className={`font-bold text-sm ${isDark ? 'text-green-400' : 'text-green-700'}`}>Report Submitted!</p>
+                      <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-400' : 'text-gray-500'}`}>The central FW3 tech team has been notified by email and will review shortly.</p>
+                    </div>
+                  </div>
+                )}
+                {submitStatus === 'error' && (
+                  <div className={`mb-5 rounded-xl p-4 border text-sm ${isDark ? 'bg-red-900/20 border-red-700 text-red-400' : 'bg-red-50 border-red-200 text-red-700'}`}>
+                    <strong>Error:</strong> {errorMessage || 'Something went wrong. Try again.'}
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div>
+                    <label className={labelCls}>Your Name / Volunteer ID *</label>
+                    <input type="text" value={villageTeamMember} onChange={e => { setVillageTeamMember(e.target.value); clearStatus(); }}
+                      placeholder="e.g., Sunil Varma (Vol-045)" required className={input} />
+                  </div>
+
+                  <div>
+                    <label className={labelCls}>Report Category *</label>
+                    <div className="space-y-2">
+                      {FEEDBACK_TYPES.map(({ value, icon, desc }) => (
+                        <label key={value} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-150 ${
+                          feedbackType === value
+                            ? (isDark ? 'border-violet-500 bg-violet-900/20 ring-1 ring-violet-500/30' : 'border-violet-500 bg-violet-50 ring-1 ring-violet-200')
+                            : (isDark ? 'border-slate-600 hover:border-slate-500' : 'border-gray-200 hover:border-gray-300')
+                        }`}>
+                          <input type="radio" name="feedbackType" value={value} checked={feedbackType === value}
+                            onChange={() => { setFeedbackType(value); clearStatus(); }} className="sr-only" />
+                          <span className="text-lg flex-shrink-0">{icon}</span>
+                          <div>
+                            <p className={`text-sm font-semibold leading-tight ${isDark ? 'text-slate-200' : 'text-gray-800'}`}>{value}</p>
+                            <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-gray-400'}`}>{desc}</p>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelCls}>Details & Observations *</label>
+                    <textarea rows="4" value={feedbackDetails} onChange={e => { setFeedbackDetails(e.target.value); clearStatus(); }}
+                      placeholder="Describe what you observed — specific issue, suggestion, or adoption pattern..." required className={input} />
+                  </div>
+
+                  <button type="submit" disabled={submitStatus === 'loading'}
+                    className={`w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow transition-all duration-200 disabled:opacity-60 ${isDark ? 'bg-violet-600 text-white hover:bg-violet-700' : 'bg-green-700 text-white hover:bg-green-800'}`}>
+                    {submitStatus === 'loading' ? (
+                      <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Sending…</>
+                    ) : (
+                      <>Send Report to FW3 Team <PaperAirplaneIcon className="h-4 w-4 rotate-45" /></>
+                    )}
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
 };
 
-// Export the component as default
 export default TechSupport;

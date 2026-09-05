@@ -1,3 +1,47 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ── Google Font ── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ── Base resets ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Light theme background with watermark logo ── */
+.bg-logo-blur {
+  position: relative;
+  background: linear-gradient(160deg, #f0fdf4 0%, #dcfce7 40%, #ecfdf5 70%, #f0fdf4 100%);
+}
+
+.bg-logo-blur::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url('/background-logo.png');
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 55%;
+  opacity: 0.06;
+  filter: grayscale(100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ensure all page content sits above the watermark */
+.bg-logo-blur > * {
+  position: relative;
+  z-index: 1;
+}

@@ -19,8 +19,7 @@ import TechSupport from "./Components/TechSupport";
 
 const App = () => {
   return (
-    <div className="bg-green-100 min-h-screen">
-      <ThemeProvider>
+    <ThemeProvider>
       <Routes>
         
         {/* 🟢 Public Routes (All routes are now public) */}
@@ -43,8 +42,7 @@ const App = () => {
         {/* 🧭 Catch-All — Redirect unknown paths to Home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      </ThemeProvider>
-    </div>
+    </ThemeProvider>
   );
 };
 

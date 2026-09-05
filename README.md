@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🌾 FW3 — Farmer World Wellbeing Web
 
 A full-stack digital platform built for rural farming communities in India, centered around the village of **Shendurjane**. FW3 digitizes key agricultural and administrative services — from soil testing appointments to emergency disaster alerts — bringing government resources closer to farmers.
@@ -297,3 +298,7 @@ All routes are prefixed with `/api`. The server runs on `http://localhost:3002` 
 ---
 
 *FW3 — Empowering Farmers, Enriching Lives.*
+=======
+# Farmer-World-Wellbeing-Web---FW3
+A dev project to help rural area farmers , and initiative to connect them to government schemes
+>>>>>>> 2818567aea5d1fc84f0855656fa5c5a7454cf113
